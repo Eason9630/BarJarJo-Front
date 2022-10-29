@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>會員中心</title>
+    <link rel="stylesheet" href="/TGA103G1/front-end/member/css/member_order_detail.css">
+    <link rel="stylesheet" href="/TGA103G1/css/header.css">
+    <link rel="stylesheet" href="/TGA103G1/css/footer1.css">
+  </head>
+  <body>
+    <div w3-include-html="/TGA103G1/com/header.html"></div>
+    <div class="div_menCenter">
+      <div class="menCenter_contain">
+        <aside class="menCenter_aside">
+          <h2>會員中心</p>
+          <ul class="menCenter_ul">
+            <li>
+              <button><a href="http://localhost:8080/TGA103G1/front-end/member/jsp/member_center.jsp">修改基本資料</a></button>
+            </li>
+            <li>
+              <button>
+                <a href="http://localhost:8080/TGA103G1/front-end/member/jsp/member_centerChangePsw.jsp">修改密碼</a>
+              </button>
+            </li>
+            <li>
+              <button>
+                <a href="http://localhost:8080/TGA103G1/front-end/member/jsp/menberCenter%EF%BC%ADanegerOrder.html">訂單管理</a>
+              </button>
+            </li>
+            <li>
+              <button><a href="http://localhost:8080/TGA103G1/front-end/member/jsp/member_centerMyLove.jsp">我的最愛</a></button>
+            </li>
+            <li>
+              <button><a href="http://localhost:8080/TGA103G1/front-end/member/jsp/member_centerForum.jsp">討論區</a></button>
+            </li>
+            <li>
+              <button><a href="http://localhost:8080/TGA103G1/memberLogout" id="innerLogout">登出</a></button>
+            </li>
+          </ul>
+        </aside>
+
+        <main class="menCenter_main">
+          <div class="menCenter_div">
+            <div class="maneger_title">訂單明細</div>
+            <table class="maneger_orderDetail">
+            <tbody class="detail">
+
+            </tbody>
+        </table>
+        <div class="info">
+            
+        </div>
+
+            <div class="table_orderDetail">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>商品內容</th>
+                            <th>金額</th>
+                            <th>數量</th>
+                            <th>小計</th>
+                        </tr>
+                    </thead>
+                    <tbody class="product">
+
+                    </tbody>
+
+                    
+                </table>
+                <div class="total">
+
+                </div>
+                
+            </div>
+            </div>
+        </main>
+      </div>
+    </div>
+  <div w3-include-html="/TGA103G1/com/footer.html"></div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script>
+        function changelog() {
+            if(sessionStorage.getItem("memberAccount")){
+            $("#login").css("display", "none")
+             $("#memberlogout").css("display", "block")
+           }
+         }
+        function logouut(){
+       //登出
+           document.querySelector("#innerLogout").addEventListener("click", function(){
+           sessionStorage.removeItem("memberAccount")
+         })
+       	document.querySelector("#memberlogout").addEventListener("click", function(){
+       	sessionStorage.removeItem("memberAccount")
+         })
+
+        }	
+    	
+    (()=>{
+      const member_id = sessionStorage.getItem("userid");
+      const order_id = sessionStorage.getItem("orderId");
+      let lits = "";
+      let list2 = "";
+      let info = "";
+      let total = "";
+      fetch('/TGA103G1/memberOrderDetail', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            member_id: member_id,
+            order_id:order_id
+          }),
+        })
+          .then(resp => resp.json())
+          .then(body => {
+            console.log(body)
+            console.log(body[0].orderName)
+            var status = "";
+             if(body[0].status == 0){
+               status = "準備中";  
+             }else if(body[0].status == 1){
+               status = "已出貨";
+             }
+             var method = "";
+             if(body[0].method == 0){
+              method = "自取";
+             }else if(body[0].method == 1){
+              method = "宅配";
+             }
+
+            lits += "<tr><td>購買人姓名:"+ body[0].orderName+"</td>"+
+                    "<td>訂單編號:"+body[0].order_id+"</td>"+
+                    "<td>訂單日期:"+body[0].date+"</td></tr>"+
+                    "<tr><td>出貨方式:"+method+"</td>"+
+                    "<td>付款金額:"+body[0].total+"</td>"+
+                    "<td>交易狀態:"+status+"</td></tr>"
+       	     $("tbody.detail").prepend(lits)  
+            for(let i = 0; i < body.length;i++){
+          
+                list2 += "<tr>"+
+                          "<td>"+body[i].product_name+"</td>"+
+                          "<td>"+body[i].onePrice+"</td>"+
+                          "<td>"+body[i].amount+"</td>"+
+                          "<td>"+body[i].onePrice * body[i].amount +"</td>"+
+                           "</tr>"
+           
+            }
+              $("tbody.product").prepend(list2)
+              info += "<p>聯絡電話:"+body[0].phone+"</p>"+"<p>收貨地址:"+body[0].address+"</p>"
+              $("div.info").prepend(info);
+              if(body[0].method == 0){
+                total += "<label>總計："+body[0].total+"</label>"
+                        $("div.total").prepend(total);
+               }else if(body[0].method == 1){   
+                total +=  "<label>總計："+ body[0].total +"</label>"
+                       $("div.total").prepend(total);
+              }
+          });
+
+      function includeHTML() {
+        var z, i, elmnt, file, xhttp;
+        /* Loop through a collection of all HTML elements: */
+        z = document.getElementsByTagName("*");
+        for (i = 0; i < z.length; i++) {
+          elmnt = z[i];
+          /*search for elements with a certain atrribute:*/
+          file = elmnt.getAttribute("w3-include-html");
+          if (file) {
+            /* Make an HTTP request using the attribute value as the file name: */
+            xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+              if (this.readyState == 4) {
+                if (this.status == 200) {elmnt.innerHTML = this.responseText;}
+                if (this.status == 404) {elmnt.innerHTML = "Page not found.";}
+                /* Remove the attribute, and call this function once more: */
+                elmnt.removeAttribute("w3-include-html");
+                includeHTML();
+                changelog();
+                logouut();
+              }
+            }
+            xhttp.open("GET", file, true);
+            xhttp.send();
+            /* Exit the function: */
+            return;
+          }
+        }
+      }
+      includeHTML();
+    })();            
+
+    </script>
+  </body>
+</html>
